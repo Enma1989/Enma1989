@@ -10,6 +10,23 @@ on cliente.id = id_conta
 WHERE dependente = true 
 group by cliente.id, dependente;
 
+select conta.numero as conta,depositos.total_depositos, debitos.total_debitos, (depositos.total_depositos-debitos.total_debitos) as saldo
+from conta
+join (select conta.numero as conta,sum(valor) as total_depositos
+	from transacao
+	join cliente_conta on cliente_conta.id=transacao.id_cliente_conta
+	join conta on conta.id=cliente_conta.id_conta
+	where id_tipo_transacao=1
+	group by conta) as depositos 
+on depositos.conta=conta.numero
+join (select conta.numero as conta,sum(valor) as total_debitos
+	from transacao
+	join cliente_conta on cliente_conta.id=transacao.id_cliente_conta
+	join conta on conta.id=cliente_conta.id_conta
+	where id_tipo_transacao<>1
+	group by conta)as debitos
+on debitos.conta=conta.numero;
+
 CREATE VIEW tb_creditos  as select id_cliente_conta as id_temp, SUM(transacao.valor) as creditos
 from transacao
 where id_tipo_transacao = 1
